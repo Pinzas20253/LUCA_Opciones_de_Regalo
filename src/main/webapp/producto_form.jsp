@@ -1,71 +1,74 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %> 
-<!-- Directiva JSP: indica que el contenido generado es HTML en codificación UTF-8 -->
-
-<%@ page import="modelo.Producto" %> 
-<!-- Importa la clase Producto desde el paquete modelo -->
-
-<%@ include file="header.jsp" %> 
-<!-- Incluye el encabezado común de la aplicación (header.jsp) -->
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List, modelo.Categoria, modelo.Proveedor, modelo.Producto, modelo.ProductoDAO" %>
+<%@ include file="header.jsp" %>
 
 <%
-    // Recupera el atributo "producto" enviado desde el controlador
-    Producto producto = (Producto) request.getAttribute("producto");
+    ProductoDAO dao = new ProductoDAO();
+    List<Categoria> categorias = dao.listarCategorias();
+    List<Proveedor> proveedores = dao.listarProveedores();
 
-    // Determina si se está editando (producto no es nulo) o creando uno nuevo
-    boolean editando = (producto != null);
+    String idParam = request.getParameter("id");
+    Producto producto = null;
+    boolean esEdicion = false;
+
+    if (idParam != null && !idParam.trim().isEmpty()) {
+        int idProducto = Integer.parseInt(idParam);
+        producto = dao.obtenerProductoPorId(idProducto);
+        esEdicion = true;
+    }
 %>
 
-<!-- Título de la página: cambia según si se edita o se crea -->
-<h2><%= editando ? "Editar Producto" : "Nuevo Producto" %></h2>
+<div class="container">
+    <h1><%= esEdicion ? "Editar Producto" : "Agregar Nuevo Producto" %></h1>
 
-<!-- Formulario para crear o actualizar un producto -->
-<form method="post" action="ProductoControlador">
-    <!-- Campo oculto para definir la acción a realizar: actualizar o agregar -->
-    <input type="hidden" name="action" value="<%= editando ? "actualizar" : "agregar" %>">
+    <form method="post" action="<%= request.getContextPath() %>/<%= esEdicion ? "ActualizarProductoControlador" : "AgregarProductoControlador" %>" enctype="multipart/form-data">
+        <% if (esEdicion) { %>
+            <input type="hidden" name="id" value="<%= producto.getIdProducto() %>">
+        <% } %>
 
-    <% if (editando) { %>
-        <!-- Si se está editando, se envía también el ID del producto -->
-        <input type="hidden" name="id" value="<%= producto.getIdProducto() %>">
-    <% } %>
+        <label>Nombre:</label><br>
+        <input type="text" name="nombre" value="<%= esEdicion ? producto.getNombre() : "" %>" required><br><br>
 
-    <!-- Campo: Nombre del producto -->
-    <label>Nombre:</label>
-    <input type="text" name="nombre" value="<%= editando ? producto.getNombre() : "" %>" required><br>
+        <label>Descripción:</label><br>
+        <textarea name="descripcion" rows="4" cols="50"><%= esEdicion ? producto.getDescripcion() : "" %></textarea><br><br>
 
-    <!-- Campo: Descripción del producto -->
-    <label>Descripción:</label>
-    <input type="text" name="descripcion" value="<%= editando ? producto.getDescripcion() : "" %>"><br>
+        <label>Precio de venta:</label><br>
+        <input type="number" step="0.01" name="precioVenta" value="<%= esEdicion ? producto.getPrecioVenta() : "" %>" required><br><br>
 
-    <!-- Campo: Precio de compra -->
-    <label>Precio Compra:</label>
-    <input type="number" step="0.01" name="precioCompra" value="<%= editando ? producto.getPrecioCompra() : "" %>" required><br>
+        <label>Stock:</label><br>
+        <input type="number" name="stock" value="<%= esEdicion ? producto.getStock() : "0" %>" required><br><br>
 
-    <!-- Campo: Precio de venta -->
-    <label>Precio Venta:</label>
-    <input type="number" step="0.01" name="precioVenta" value="<%= editando ? producto.getPrecioVenta() : "" %>" required><br>
+        <label>Categoría:</label><br>
+        <select name="idCategoria" required>
+            <option value="">-- Seleccionar --</option>
+            <% for (Categoria c : categorias) { %>
+                <option value="<%= c.getIdCategoria() %>" <%= esEdicion && producto.getCategoria().getIdCategoria() == c.getIdCategoria() ? "selected" : "" %>>
+                    <%= c.getNombreCategoria() %>
+                </option>
+            <% } %>
+        </select><br><br>
 
-    <!-- Campo: Stock disponible -->
-    <label>Stock:</label>
-    <input type="number" name="stock" value="<%= editando ? producto.getStock() : "" %>" required><br>
+        <label>Proveedor:</label><br>
+        <select name="idProveedor" required>
+            <option value="">-- Seleccionar --</option>
+            <% for (Proveedor p : proveedores) { %>
+                <option value="<%= p.getIdProveedor() %>" <%= esEdicion && producto.getProveedor().getIdProveedor() == p.getIdProveedor() ? "selected" : "" %>>
+                    <%= p.getEmpresa() %>
+                </option>
+            <% } %>
+        </select><br><br>
 
-    <!-- Campo: URL de la imagen del producto -->
-    <label>Imagen URL:</label>
-    <input type="text" name="imagenUrl" value="<%= editando ? producto.getImagenUrl() : "" %>"><br>
+        <label>Imagen (URL o archivo):</label><br>
+        <input type="text" name="imagen" value="<%= esEdicion ? producto.getImagen() : "" %>"><br><br>
 
-    <!-- Campo: Estado del producto (Activo / Inactivo) -->
-    <label>Estado:</label>
-    <select name="estado">
-        <!-- Marca como "selected" según el estado actual del producto -->
-        <option value="Activo" <%= editando && "Activo".equals(producto.getEstado()) ? "selected" : "" %>>Activo</option>
-        <option value="Inactivo" <%= editando && "Inactivo".equals(producto.getEstado()) ? "selected" : "" %>>Inactivo</option>
-    </select><br>
+        <label>Estado:</label><br>
+        <select name="estado" required>
+            <option value="Activo" <%= esEdicion && "Activo".equals(producto.getEstado()) ? "selected" : "" %>>Activo</option>
+            <option value="Inactivo" <%= esEdicion && "Inactivo".equals(producto.getEstado()) ? "selected" : "" %>>Inactivo</option>
+        </select><br><br>
 
-    <!-- Botón que cambia el texto según si se edita o agrega -->
-    <button type="submit"><%= editando ? "Actualizar" : "Agregar" %></button>
-</form>
+        <button type="submit"><%= esEdicion ? "Actualizar Producto" : "Agregar Producto" %></button>
+    </form>
+</div>
 
-<!-- Enlace para volver a la lista de productos -->
-<a href="ProductoControlador?action=listar">← Volver a lista de productos</a>
-
-<%@ include file="footer.jsp" %> 
-<!-- Incluye el pie de página común (footer.jsp) -->
+<%@ include file="footer.jsp" %>

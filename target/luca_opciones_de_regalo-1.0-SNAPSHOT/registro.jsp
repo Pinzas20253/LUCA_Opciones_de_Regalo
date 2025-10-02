@@ -1,185 +1,143 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>  
-<!-- Directiva JSP: define que la página usa UTF-8 y lenguaje Java -->
-
-<%@ page import="java.util.*" %>  
-<!-- Importa utilidades de Java como List, necesarias para manejar el carrito -->
-
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.*" %>
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8"> <!-- Codificación de caracteres -->
-    <title>Registro - LUCA Opciones de Regalo</title> <!-- Título de la pestaña -->
+    <meta charset="UTF-8">
+    <title>Registro - LUCA Opciones de Regalo</title>
+    <!-- ✅ Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        /* ==== Estilos generales ==== */
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f5f9ff;
-            color: #000;
+        body {
+            background: linear-gradient(135deg, #f5f9ff, #e0ecff);
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
 
-        /* ==== Barra de navegación ==== */
-        .navbar { 
-            position: fixed;               /* Fija la barra arriba */
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;                 /* Siempre visible */
+        .navbar {
             background-color: #003366;
-            padding: 10px 20px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
         }
 
-        .navbar a { 
-            margin: 0 10px; 
-            text-decoration: none; 
-            color: #ffffff;
-            font-weight: bold; 
-            transition: color 0.3s;        /* Efecto al pasar el mouse */
+        .navbar a {
+            color: #ffffff !important;
+            font-weight: bold;
         }
 
-        .navbar a:hover { color: #ff0000; }
-
-        .logo { display: flex; align-items: center; }
-        .logo img { height: 50px; margin-right: 10px; }
-        .logo span { color: #ff0000; font-size: 24px; font-weight: bold; }
-
-        /* ==== Contenedor principal ==== */
-        .main { 
-            margin-top: 100px;             /* Deja espacio para la navbar */
-            display: flex; 
-            justify-content: center; 
+        .navbar a:hover {
+            color: #ff0000 !important;
         }
 
-        /* ==== Formulario de registro ==== */
-        .registro-form {
-            background-color: #fff;
+        .registro-container {
+            margin-top: 120px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .registro-card {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2); /* Sombra */
-            width: 100%;
-            max-width: 400px;
+            background: #fff;
         }
 
-        .registro-form h2 {
+        .registro-card h2 {
             text-align: center;
-            margin-bottom: 20px;
             color: #003366;
+            margin-bottom: 20px;
         }
 
-        /* Campos de texto */
-        .registro-form input[type="text"],
-        .registro-form input[type="email"],
-        .registro-form input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #003366;
-            border-radius: 5px;
-        }
-
-        /* Botón */
-        .registro-form button {
-            width: 100%;
-            padding: 10px;
+        .btn-registro {
             background-color: #003366;
             color: #fff;
-            border: none;
-            border-radius: 5px;
             font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
+            transition: 0.3s;
         }
 
-        .registro-form button:hover {
+        .btn-registro:hover {
             background-color: #ff0000;
+            color: #fff;
         }
 
-        /* Mensaje de error */
         .error-message {
             color: #ff0000;
-            margin-bottom: 10px;
             text-align: center;
+            margin-bottom: 15px;
         }
-
-        /* Texto debajo del formulario */
-        .registro-form p {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .registro-form a {
-            color: #003366;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .registro-form a:hover { color: #ff0000; }
     </style>
 </head>
 <body>
 
-<!-- Barra de navegación superior -->
-<div class="navbar">
-    <div class="logo">
-        <img src="imagenes/logo.png" alt="Logo LUCA">
-        <span>LUCA Opciones de Regalo</span>
+<!-- ✅ Barra de navegación -->
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center text-white" href="index.jsp">
+            <img src="imagenes/logo.png" alt="Logo LUCA" style="height: 45px; margin-right: 10px;">
+            <span>LUCA Opciones de Regalo</span>
+        </a>
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="index.jsp">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="catalogo.jsp">Catálogo</a></li>
+                <li class="nav-item"><a class="nav-link" href="contacto.jsp">Contacto</a></li>
+                <li class="nav-item"><a class="nav-link" href="login.jsp">Login</a></li>
+                <li class="nav-item"><a class="nav-link active" href="registro.jsp">Registro</a></li>
+                <li class="nav-item">
+                    <%
+                        int totalProductos = 0;  
+                        List carrito = (List) session.getAttribute("carrito");
+                        if(carrito != null){
+                            for(Object obj : carrito){
+                                modelo.Carrito c = (modelo.Carrito) obj;
+                                totalProductos += c.getCantidad();
+                            }
+                        }
+                    %>
+                    <a class="nav-link" href="carrito.jsp">Carrito (<%= totalProductos %>)</a>
+                </li>
+            </ul>
+        </div>
     </div>
-    <div class="menu">
-        <!-- Links de navegación -->
-        <a href="index.jsp">Inicio</a>
-        <a href="catalogo.jsp">Catálogo</a>
-        <a href="contacto.jsp">Contacto</a>
-        <a href="login.jsp">Login</a>
-        <a href="registro.jsp">Registro</a>
+</nav>
 
-        <% 
-            // ==== Lógica del carrito ====
-            int totalProductos = 0;  
-            List carrito = (List) session.getAttribute("carrito"); // Obtiene carrito de la sesión
-            if(carrito != null){
-                for(Object obj : carrito){
-                    modelo.Carrito c = (modelo.Carrito) obj; // Convierte cada objeto al modelo Carrito
-                    totalProductos += c.getCantidad();       // Suma las cantidades
-                }
-            }
-        %>
-        <!-- Muestra el total de productos en el carrito -->
-        <a href="carrito.jsp">Carrito (<%= totalProductos %>)</a>
-    </div>
-</div>
-
-<!-- Contenedor principal -->
-<div class="main">
-    <div class="registro-form">
+<!-- ✅ Formulario de registro -->
+<div class="registro-container">
+    <div class="registro-card">
         <h2>Registro de Usuario</h2>
 
-        <%-- Si hay un error desde el controlador, lo muestra --%>
         <% if(request.getAttribute("error") != null){ %>
             <div class="error-message"><%= request.getAttribute("error") %></div>
         <% } %>
 
-        <!-- Formulario de registro -->
-        <form method="post" action="RegistroControlador">
-            <input type="text" name="nombre" placeholder="Nombre completo" required>
-            <input type="email" name="correo" placeholder="Correo electrónico" required>
-            <input type="password" name="contraseña" placeholder="Contraseña" required>
-            <input type="text" name="celular" placeholder="Celular">
-            <input type="text" name="direccion" placeholder="Dirección">
-            <button type="submit">Registrarse</button>
+        <form method="post" action="registro">
+            <div class="mb-3">
+                <input type="text" class="form-control" name="nombre" placeholder="Nombre completo" required>
+            </div>
+            <div class="mb-3">
+                <input type="email" class="form-control" name="correo" placeholder="Correo electrónico" required>
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" name="password" placeholder="Contraseña" required>
+            </div>
+            <div class="mb-3">
+                <input type="text" class="form-control" name="celular" placeholder="Celular">
+            </div>
+            <div class="mb-3">
+                <input type="text" class="form-control" name="direccion" placeholder="Dirección">
+            </div>
+            <button type="submit" class="btn btn-registro w-100">Registrarse</button>
         </form>
 
-        <!-- Link para usuarios con cuenta -->
-        <p>¿Ya tienes cuenta? <a href="login.jsp">Inicia sesión</a></p>
+        <p class="text-center mt-3">¿Ya tienes cuenta? 
+            <a href="login.jsp" class="fw-bold" style="color:#003366;">Inicia sesión</a>
+        </p>
     </div>
 </div>
 
-<!-- Incluye el pie de página desde un archivo externo -->
 <%@ include file="footer.jsp" %>
 
+<!-- ✅ Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

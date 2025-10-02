@@ -1,73 +1,56 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.*, modelo.Producto" %>
+<%@ page import="java.util.List, modelo.Producto, modelo.Categoria, modelo.Proveedor, modelo.ProductoDAO" %>
+
 <%@ include file="header.jsp" %>
 
-<div class="main">
-    <h2 style="text-align:center;">Administrar Productos</h2>
+<%
+    ProductoDAO dao = new ProductoDAO();
+    List<Producto> productos = dao.listarProductos();
 
-    <!-- Botón para agregar producto -->
-    <div style="text-align:center; margin: 20px;">
-        <a href="ProductoControlador?action=form"
-           style="padding:10px 15px; background-color:#28a745; color:white; text-decoration:none; border-radius:5px;">
-           ➕ Agregar Producto
-        </a>
-    </div>
+    String mensaje = request.getParameter("mensaje");
+    String error = request.getParameter("error");
+%>
 
-    <%
-        // Obtener lista de productos desde el controlador
-        List<Producto> listaProductos = (List<Producto>) request.getAttribute("listaProductos");
-    %>
+<div class="container">
+    <h1>Administrar Productos</h1>
 
-    <% if (listaProductos != null && !listaProductos.isEmpty()) { %>
-        <!-- Tabla con la lista de productos -->
-        <table style="width: 80%; border-collapse: collapse; margin: 0 auto;">
-            <thead>
-                <tr>
-                    <th style="border:1px solid #ccc; padding:8px;">ID</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Nombre</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Descripción</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Precio</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Stock</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Imagen</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% for (Producto p : listaProductos) { %>
-                    <tr>
-                        <!-- Mostrar datos del producto -->
-                        <td style="border:1px solid #ccc; padding:8px;"><%= p.getIdProducto() %></td>
-                        <td style="border:1px solid #ccc; padding:8px;"><%= p.getNombre() %></td>
-                        <td style="border:1px solid #ccc; padding:8px;"><%= p.getDescripcion() %></td>
-                        <td style="border:1px solid #ccc; padding:8px;">$<%= p.getPrecio() %></td>
-                        <td style="border:1px solid #ccc; padding:8px;"><%= p.getStock() %></td>
-                        <td style="border:1px solid #ccc; padding:8px;">
-                            <% if (p.getImagenUrl() != null) { %>
-                                <!-- Mostrar imagen si existe -->
-                                <img src="imagenes/<%= p.getImagenUrl() %>" alt="Imagen" style="width:60px; height:auto;">
-                            <% } else { %>
-                                <!-- Texto si no hay imagen -->
-                                Sin imagen
-                            <% } %>
-                        </td>
-                        <td style="border:1px solid #ccc; padding:8px;">
-                            <!-- Acciones editar y eliminar -->
-                            <a href="ProductoControlador?action=editar&id=<%= p.getIdProducto() %>"
-                               style="color:blue; margin-right:10px;">✏️ Editar</a>
-                            <a href="ProductoControlador?action=eliminar&id=<%= p.getIdProducto() %>"
-                               style="color:red;"
-                               onclick="return confirm('¿Seguro que deseas eliminar este producto?');">
-                               🗑️ Eliminar
-                            </a>
-                        </td>
-                    </tr>
-                <% } %>
-            </tbody>
-        </table>
-    <% } else { %>
-        <!-- Mensaje si no hay productos -->
-        <p style="text-align:center;">⚠️ No hay productos registrados.</p>
+    <% if (mensaje != null) { %>
+        <div style="color:green;"><%= mensaje %></div>
     <% } %>
+    <% if (error != null) { %>
+        <div style="color:red;"><%= error %></div>
+    <% } %>
+
+    <a href="producto_form.jsp" style="margin-bottom:15px; display:inline-block;">Agregar Nuevo Producto</a>
+
+    <table border="1" cellpadding="10" cellspacing="0">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Categoría</th>
+            <th>Proveedor</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        <% for (Producto p : productos) { %>
+            <tr>
+                <td><%= p.getIdProducto() %></td>
+                <td><%= p.getNombre() %></td>
+                <td>$<%= p.getPrecioVenta() %></td>
+                <td><%= p.getStock() %></td>
+                <td><%= p.getCategoria().getNombreCategoria() %></td>
+                <td><%= p.getProveedor().getEmpresa() %></td>
+                <td><%= p.getEstado() %></td>
+                <td>
+                    <a href="producto_form.jsp?id=<%= p.getIdProducto() %>">Editar</a>
+                    &nbsp;|&nbsp;
+                    <a href="ProductoControlador?accion=detalle&id=<%= p.getIdProducto() %>" target="_blank">Ver</a>
+                </td>
+            </tr>
+        <% } %>
+    </table>
 </div>
 
 <%@ include file="footer.jsp" %>
